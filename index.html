@@ -822,18 +822,31 @@ async function loadAllData() {
     ]);
     trades = await tRes.json();
     divs   = await dRes.json();
-    // 数値変換
+    // 数値・日付変換
+    function fixDate(d) {
+      if (!d) return '';
+      if (typeof d === 'string' && d.includes('T')) return d.slice(0, 10);
+      if (d instanceof Date) return d.toISOString().slice(0, 10);
+      return String(d).replace(/\//g, '-');
+    }
     trades = trades.map(t => ({
       ...t,
       id: Number(t.id), qty: Number(t.qty), price: Number(t.price),
       fee: Number(t.fee), settle: Number(t.settle),
+      date: fixDate(t.date),
+      type: String(t.type),
+      name: String(t.name),
+      code: String(t.code || ''),
       pnl: t.pnl !== '' && t.pnl != null ? Number(t.pnl) : null,
       per: t.per !== '' && t.per != null ? Number(t.per) : null,
       divYield: t.divYield !== '' && t.divYield != null ? Number(t.divYield) : null,
     }));
     divs = divs.map(d => ({
       ...d,
-      id: Number(d.id), amount: Number(d.amount)
+      id: Number(d.id), amount: Number(d.amount),
+      date: fixDate(d.date),
+      name: String(d.name),
+      code: String(d.code || ''),
     }));
   } catch(e) {
     toast('❌ データ読み込み失敗: ' + e.message);
